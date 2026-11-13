@@ -1,31 +1,64 @@
-# Change these first
-owner: upptime # Your GitHub organization or username, where this repository lives
-repo: upptime # The name of this repository
+# Upptime configuration for the public SpecStream status page.
+# The repository github.com/specstream/status is made from the upptime/upptime template by
+# ops/status-page/publish.sh, which copies this file there. Upptime's own GitHub Actions read it.
+#
+# Every check is signed out: no API key is stored in that repository and no check is billed.
+# A route that asks for a key answers 401 when the service behind it is up, so 401 is the
+# expected answer there. tests/ops/test_status_page.py holds these paths to the API's routes.
+owner: specstream
+repo: status
 
 sites:
-  - name: Google
-    url: https://www.google.com
-  - name: Wikipedia
-    url: https://en.wikipedia.org
-  - name: Hacker News
-    url: https://news.ycombinator.com
-  - name: Secret Site
-    url: $SECRET_SITE
+  - name: Search API
+    url: https://api.specstream.ai/v1/web-search?q=status
+    expectedStatusCodes:
+      - 401
+  - name: Extract API
+    method: POST
+    url: https://api.specstream.ai/v1/extract
+    headers:
+      - "Content-Type: application/json"
+    body: '{"urls": ["https://example.com"]}'
+    expectedStatusCodes:
+      - 401
+  - name: Deep Search API
+    # Signed out this list answers 200 with no specs today; 401 is also a live answer.
+    url: https://api.specstream.ai/v1/specs
+    expectedStatusCodes:
+      - 200
+      - 401
+  - name: MCP server
+    method: POST
+    url: https://api.specstream.ai/mcp
+    headers:
+      - "Content-Type: application/json"
+      - "Accept: application/json, text/event-stream"
+    body: '{"jsonrpc": "2.0", "id": 1, "method": "ping"}'
+    expectedStatusCodes:
+      - 401
+  - name: API health
+    url: https://api.specstream.ai/healthz
+    expectedStatusCodes:
+      - 200
+  - name: Website
+    url: https://specstream.ai/
+    expectedStatusCodes:
+      - 200
 
 status-website:
-  # Add your custom domain name, or remove the `cname` line if you don't have a domain
-  # Uncomment the `baseUrl` line if you don't have a custom domain and add your repo name there
-  cname: demo.upptime.js.org
-  # baseUrl: /your-repo-name
-  logoUrl: https://raw.githubusercontent.com/upptime/upptime.js.org/master/static/img/icon.svg
-  name: Upptime
-  introTitle: "**Upptime** is the open-source uptime monitor and status page, powered entirely by GitHub."
-  introMessage: This is a sample status page which uses **real-time** data from our [GitHub repository](https://github.com/upptime/upptime). No server required — just GitHub Actions, Issues, and Pages. [**Get your own for free**](https://github.com/upptime/upptime)
+  # Served by GitHub Pages at https://specstream.github.io/status/ (no custom domain, so no DNS step).
+  baseUrl: /status
+  # The logo is the launch kit's ink mark on white (listings/_shared/launch-kit.md, Logo and pictures).
+  logoUrl: https://specstream.ai/logo/specstream-logo.svg
+  favicon: https://specstream.ai/logo/specstream-logo-1024.png
+  name: SpecStream Status
+  # The two lines below wait for the writer agent (words a stranger reads).
+  introTitle: "SpecStream status"
+  introMessage: Live checks of the Search, Extract and Deep Search APIs, run every five minutes from GitHub Actions. Incidents are also listed at [api.specstream.ai/v1/status](https://api.specstream.ai/v1/status).
   navbar:
     - title: Status
       href: /
+    - title: SpecStream
+      href: https://specstream.ai/
     - title: GitHub
       href: https://github.com/$OWNER/$REPO
-
-# Upptime also supports notifications, assigning issues, and more
-# See https://upptime.js.org/docs/configuration
